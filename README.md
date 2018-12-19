@@ -2,10 +2,6 @@
 Data cleaning and wrangling for Flickr-Images-Book Dataset and guess the number program
 
 
-# Data_Quality
-Data cleaning and wrangling for Flickr-Images-Book Dataset and guess the number program
-
-
 
 # Code Exercise 1:
 In a language of your choice write a program that will take a random integer as a parameter, then have
