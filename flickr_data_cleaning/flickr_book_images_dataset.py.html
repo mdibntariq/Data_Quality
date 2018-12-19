@@ -1,0 +1,356 @@
+
+# coding: utf-8
+
+# In[1]:
+
+
+import pandas as pd
+import numpy as np
+from pandas.api.types import is_numeric_dtype
+
+
+# In[2]:
+
+
+#read the file from local
+df0=pd.read_csv('/Users/mohammadkhan/Desktop/Data Quality Engineer Data File - BL-Flickr-Images-Book.csv',encoding='utf-8')
+
+
+# In[3]:
+
+
+#Check for the existing column names
+df0.columns
+
+
+# In[4]:
+
+
+#Drop the columns as mentioned in the readme doc
+df0.drop(['Edition Statement','Corporate Author','Corporate Contributors',
+'Former owner','Engraver','Contributors','Issuance type','Shelfmarks'], axis=1, inplace=True)
+
+
+# In[7]:
+
+
+#Setting the Index for the df0 as per readme doc
+df0.set_index('Identifier', inplace=True)
+
+
+# In[8]:
+
+
+#Check if the Index is Unique
+df0.index.is_unique
+
+
+# ### Label based Indexing (loc[ ])  vs  Position based Indexing (iloc[ ]) for pandas dataframes 
+
+# #### Selecting column by label
+
+# In[9]:
+
+
+df0.loc[:,'Publisher'].tail(10)
+
+
+# #### Selecting Column by Index (Position)
+
+# In[10]:
+
+
+df0.iloc[:,2].tail(10)
+
+
+# #### Selecting row by label 
+
+# In[11]:
+
+
+df0.loc[667]
+
+
+# #### Selecting row by lndex (Position) 
+
+# In[ ]:
+
+
+df0.iloc[7]
+
+
+# #### Selecting rows based on label slices
+
+# In[ ]:
+
+
+df0.loc[[874,2956,3131],'Place of Publication':'Publisher']
+
+
+# #### Selecting rows based on lndex slices
+
+# In[ ]:
+
+
+df0.iloc[[8,16,19],0:3]
+
+
+# In[12]:
+
+
+# Checking for null values in Date of Publication Column
+df0['Date of Publication'].isnull().sum()
+
+
+# In[27]:
+
+
+#Checking for Null Values in Date of Publication Column
+df0[df0['Date of Publication'].isnull()]
+
+
+# In[13]:
+
+
+#Creating temporary dataframes for data cleaning of Date of Publication Column
+df1=df0.copy()
+df2=df0.copy()
+
+
+# The regex:
+# 
+# (?<!\d) - specifies that anything before a set of 4 digits is something that is not a digit;
+# (\d{4}) - matches 4 digits;
+# (?!\d) - specifies that anything after a set of 4 digits is something that is not a digit
+
+# In[14]:
+
+
+#Extracts Date of Publication from Place of Publication Column using regex
+df1['Date of Publication']=df0.where(df1['Date of Publication'].isnull(),df1['Place of Publication'].str.extract(r'(?<!\d)(\d{4})(?!\d)'),axis=0)
+
+
+# In[15]:
+
+
+#All but 2 null values are filled with correct data from Place of Publication column
+df2['Date of Publication']=df1.where(df2['Date of Publication'].isnull(),df2['Date of Publication'],axis=0)
+
+
+# In[16]:
+
+
+#Removes any extra characters taking into account only the first date in case of multiple dates 
+df2['Date of Publication']=df2['Date of Publication'].str.extract(r'(?<!\d)(\d{4})(?!\d)')
+
+
+# In[18]:
+
+
+#Checking for numeric data type
+is_numeric_dtype(df2['Date of Publication'])
+
+
+# In[19]:
+
+
+# Enforcing the Date of Publication field to Numeric value
+df2['Date of Publication'] = pd.to_numeric(df2['Date of Publication'])
+
+
+# In[20]:
+
+
+#Rechecking the data type of Date of Publication column
+is_numeric_dtype(df2['Date of Publication'])
+
+
+# In[21]:
+
+
+#Again checking for null values if any
+df2['Date of Publication'].isnull().sum()
+
+
+# In[24]:
+
+
+#Tuple has no date of publication, hence it has NaN as value in df2
+df0[df0.index==516336] 
+
+
+# In[25]:
+
+
+#Tuple has no date of publication, hence it has NaN as value in df2
+df0[df0.index==3605102] 
+
+
+# In[28]:
+
+
+#Creating Temporary Dataframe for Standardizing the Place of Publication Column
+df3=df2.copy()
+
+
+# In[29]:
+
+
+#Filtering out relevant cities from the Place of Publication Column and extracting City names accidently in the publisher column
+Plymouth = df3['Place of Publication'].str.contains('Plymouth')
+new_haven = df3['Place of Publication'].str.contains('New-Haven')
+london = df3['Place of Publication'].str.contains(': London')
+edinburg_london = df3['Place of Publication'].str.contains(': Edinburgh and London')
+edinburg=df3['Place of Publication'].str.contains(': Edinburgh')
+london1= df3['Place of Publication'].str.contains('London:')
+oxford=df3['Place of Publication'].str.contains(': Oxford')
+hawick=df3['Place of Publication'].str.contains(': Hawick')
+barnstaple=df3['Place of Publication'].str.contains(': Barnstaple')
+belfast=df3['Place of Publication'].str.contains(': Belfast')
+manchester=df3['Place of Publication'].str.contains(': Manchester')
+toronto=df3['Place of Publication'].str.contains('Toronto')
+dublin=df3['Place of Publication'].str.contains(': Dublin')
+newyork=df3['Place of Publication'].str.contains(': New York')
+oldham=df3['Place of Publication'].str.contains(': Oldham')
+Санктпетербургъ=df3['Place of Publication'].str.contains('Санктпетербургъ')
+glasglow=df3['Place of Publication'].str.contains(': Glasgow')
+paisley=df3['Place of Publication'].str.contains(': Paisley')
+bodmin=df3['Place of Publication'].str.contains(': Bodmin')
+hammersmith=df3['Place of Publication'].str.contains(': Hammersmith')
+penzance=df3['Place of Publication'].str.contains(': Penzance')
+melbourne=df3['Place of Publication'].str.contains(': Melbourne')
+newport=df3['Place of Publication'].str.contains(': Newport')
+leeds=df3['Place of Publication'].str.contains(': Hamblen')
+copenhague=df3['Place of Publication'].str.contains('Copenhague')
+montreal=df3['Place of Publication'].str.contains('Montreal')
+df3['Place of Publication']=df3['Place of Publication'].str.replace('N.Y','New York')
+df3['Place of Publication']=df3['Place of Publication'].str.replace('Phila\\.','Philadelphia')
+df3['Place of Publication']=df3['Place of Publication'].str.replace('Saint Lo','St. Louis',regex=True)
+df3['Place of Publication']=df3['Place of Publication'].str.replace('Newcastle on Tyne','Newcastle upon Tyne',regex=True)
+df3['Place of Publication']=df3['Place of Publication'].str.replace('Newark, N.J','Newark')
+df3['Place of Publication']=df3['Place of Publication'].str.replace('Philadelphia, Pa','Philadelphia')
+df3['Place of Publication'] = df3['Place of Publication'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8')
+df3['Place of Publication'] = df3['Place of Publication'].replace({'Orleans':'New Orleans','Boston [Mass.]':'Boston'},regex=True)
+st_louis=df3['Place of Publication'].str.contains('St. Louis')
+albany=df3['Place of Publication'].str.contains('Albany, New York')
+auburn=df3['Place of Publication'].str.contains('Auburn, New York')
+richmond=df3['Place of Publication'].str.contains('Richmond')
+ny_london=df3['Place of Publication'].str.contains('Macmillan & Co')
+ednbrg1=df3['Place of Publication'].str.contains('William Nimmo')
+ednbrg2=df3['Place of Publication'].str.contains('William Paterson')
+ednbrg3=df3['Place of Publication'].str.contains('W P Nimmo')
+ednbrg_london=df3['Place of Publication'].str.contains('William Blackwood & Sons')
+london11=df3['Place of Publication'].str.contains('Willoughby ')
+london22=df3['Place of Publication'].str.contains('Ward & Lock')
+london33=df3['Place of Publication'].str.contains('W H Allen & Co')
+london44=df3['Place of Publication'].str.contains('Vernor, Hood, & Sharpe, etc')
+london55=df3['Place of Publication'].str.contains('Service & Paton')
+london66=df3['Place of Publication'].str.contains('sold by J. Newbery; M. Cooper')
+london77=df3['Place of Publication'].str.contains('Smith, Elder & Co')
+london88=df3['Place of Publication'].str.contains('Richard Bentley & Son')
+london99=df3['Place of Publication'].str.contains('Remington & Co')
+london111=df3['Place of Publication'].str.contains('Parker Son and Bourne')
+london222=df3['Place of Publication'].str.contains('M Cooper')
+london333=df3['Place of Publication'].str.contains('John ')
+london444=df3['Place of Publication'].str.contains('James ')
+london555=df3['Place of Publication'].str.contains('J. ')
+london666=df3['Place of Publication'].str.contains('Henry G Bohn')
+london777=df3['Place of Publication'].str.contains('Harrison')
+london888=df3['Place of Publication'].str.contains('George Routledge & Sons')
+london999=df3['Place of Publication'].str.contains('G. ')
+london1111=df3['Place of Publication'].str.contains('Francis & John Rivington')
+london2222=df3['Place of Publication'].str.contains('Cassell')
+london3333=df3['Place of Publication'].str.contains('Bradbury & Evans')
+london4444=df3['Place of Publication'].str.contains('Bliss')
+london5555=df3['Place of Publication'].str.contains('Bernard Lintot')
+london6666=df3['Place of Publication'].str.contains('B Law')
+london7777=df3['Place of Publication'].str.contains('Bell & Daldy')
+london8888=df3['Place of Publication'].str.contains('A Strahan')
+london9999=df3['Place of Publication'].str.contains('A Millar')
+lndn1=df3['Place of Publication'].str.contains('Bickers & Son')
+madras=df3['Place of Publication'].str.contains('V Kalyanaram')
+ny_b=df3['Place of Publication'].str.contains('Morse Co')
+ny_l1=df3['Place of Publication'].str.contains('Macmillan & Co')
+ny_l2=df3['Place of Publication'].str.contains('Alexander Strahan')
+b_l=df3['Place of Publication'].str.contains('Ginn & Co')
+cmb_l=df3['Place of Publication'].str.contains('Jones & Piggott')
+ny_p1=df3['Place of Publication'].str.contains('Home Publishing Co')
+ny_p2=df3['Place of Publication'].str.contains('Harper & Bros')
+ny_p3=df3['Place of Publication'].str.contains('D. Appleton & Co')
+bs1=df3['Place of Publication'].str.contains('D. C. Heath & Co')
+calcutta=df3['Place of Publication'].str.contains('Baptist Mission Press')
+frankfurt=df3['Place of Publication'].str.contains('Frank')
+exeter=df3['Place of Publication'].str.contains('Exeter')
+providence=df3['Place of Publication'].str.contains('Providence')
+jamaica=df3['Place of Publication'].str.contains('Jamaica')
+konigsberg=df3['Place of Publication'].str.contains('Konigsberg')
+springfield=df3['Place of Publication'].str.contains('Springfield')
+st_pts=df3['Place of Publication'].str.contains('St. Petersbourg')
+
+
+# In[31]:
+
+
+#
+df3['Place of Publication'] = np.where(Plymouth,'Plymouth',np.where(new_haven,'New Haven',np.where(edinburg_london,'Edinburgh and London',
+np.where(edinburg,'Edinburgh',np.where(london, 'London',np.where(london1,'London',np.where(oxford,'Oxford',np.where(hawick,'Hawick',np.where(barnstaple,'Barnstaple',
+np.where(belfast,'Belfast',np.where(manchester,'Manchester',np.where(toronto,'Toronto',np.where(dublin,'Dublin',np.where(newyork,'New York',
+np.where(oldham,'oldham',np.where(Санктпетербургъ,'Санктпетербургъ',np.where(glasglow,'Glasglow',np.where(paisley,'Paisley',np.where(bodmin,'Bodmin',
+np.where(hammersmith,'Hammersmith',np.where(penzance,'Penzance',np.where(melbourne,'Melbourne',np.where(newport,'Newport',
+np.where(leeds,'Leeds',np.where(copenhague,'Copenhagen',np.where(montreal,'Montreal',np.where(st_louis,'St. Louis',np.where(albany,'Albany',
+np.where(auburn,'Auburn',np.where(richmond,'Richmond',np.where(ny_london,'London and New York',np.where(ednbrg1,'Edinburgh',
+np.where(ednbrg2,'Edinburgh',np.where(ednbrg3,'Edinburgh',np.where(ednbrg_london,'Edinburgh and London',np.where(london11,'London',np.where(london22,'London',
+np.where(london33,'London',np.where(london44,'London',np.where(london55,'London',np.where(london66,'London',np.where(london77,'London',np.where(london88,'London',
+np.where(london99,'London',np.where(london111,'London',np.where(london222,'London',np.where(london333,'London',np.where(london444,'London',np.where(london555,'London',
+np.where(london666,'London',np.where(london777,'London',np.where(london888,'London',np.where(london999,'London',np.where(london1111,'London',np.where(london2222,'London',
+np.where(london3333,'London',np.where(london4444,'London',np.where(london5555,'London',np.where(london6666,'London',np.where(london7777,'London',np.where(london8888,'London',
+np.where(london9999,'London',np.where(ny_b,'New York and Boston',np.where(ny_l1,'New York and London',np.where(ny_l2,'New York and London',np.where(cmb_l,'Cambridge and London',
+np.where(ny_p1,'New York',np.where(ny_p2,'New York',np.where(ny_p3,'New York',np.where(b_l,'Boston and London',np.where(bs1,'Boston',np.where(madras,'Madras',
+np.where(calcutta,'Calcutta', np.where(lndn1,'London',np.where(frankfurt,'Frankfurt',np.where(exeter,'Exeter',np.where(providence,'Providence',np.where(jamaica,'Jamaica',
+np.where(konigsberg,'Konigsberg',np.where(springfield,'Springfield',np.where(st_pts,'St. Petersburg', df3['Place of Publication'].str.replace('-', ' ')))))))))))))))))))))))))))
+)))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+
+# In[32]:
+
+
+#Using Regex to get rid of extra charachters
+pattern = '|'.join(['\\[printed]', 'printed', 'reprinted','\\[U.S.]','U.S.*','Mass.*','\\[Minn.]','\\[Conn.]','\d+','\'s','\\[sic]','\\?','\\[','\\]',', Ill','pp.','; Virtue & Yorston','\\(','Printed for private circulation','Private Impression: ',
+'Published in  pts','W. Frederick',' F. P. Harper',' Phillipson & Golder',' Cole Book Arcade','E. P. Dutton & Co','Aylesbury','Scribner, Welford, & Armstrong','T. Merrill','Longman & Co.','series','For Charles Harper.','pp. . D. Nutt; In the Strand','T. C. Newby','^v.','etc.: Thomas Nelson & Sons','xxxi','Privately','by B Dewhirst'])
+
+df3['Place of Publication'] = df3['Place of Publication'].str.replace(pattern,'')
+
+
+# In[37]:
+
+
+#Restructuring the data after cleaning 
+df3['Place of Publication']=df3['Place of Publication'].replace('\;',',', regex=True).replace('\.','', regex=True).replace('\&',',', regex=True).replace('and',',', regex=True).replace('\:','', regex=True)
+
+
+# In[39]:
+
+
+#Whitespaces cleanup
+df3['Place of Publication']=df3['Place of Publication'].str.strip()
+
+
+# In[40]:
+
+
+df3.to_csv('/Users/mohammadkhan/Desktop/flickr_data/std_final_df.csv')
+
+
+# In[45]:
+
+
+#Deleting all the temporary dataframes 
+del df1
+del df2
+
+
+# In[47]:
+
+
+del df3
+
