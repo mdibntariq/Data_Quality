@@ -1,0 +1,41 @@
+def guess(nu):
+    print("Your number should be between 1 through",nu)
+    go_on=True #its declared true for the while loop 
+    l=0 #lower value is set to 0
+    h=nu+1 #higher value is set to the max number + 1
+    i=0  # i keeps track of all the attempts it took to guess
+    while go_on:
+        i=i+1  # i is incremented with each guess
+        if h-l==2:
+            print("Your num is", h-1)
+            break
+
+        num=int((h+l)/2)   #each guess is the mid point of the range (range is from l to h)
+        print(num, end=" ")
+        state=input()
+
+        if state=="h":
+            h=num  #if guess is higher it shortens the range by making current guess the highest value of the range
+
+        elif state=="l":
+            l=num  #if guess is lower, it shortens the range by increasing the lowest value of the range
+
+        elif state=="c":
+            print("Your number is",num)
+            break
+    return(i)
+
+
+
+print("You can choose a number from 1 to n, please choose n")
+nu=int(input()) #takes the n from the user
+flag='y' #keeps track of y or n to see if user wants to continue
+attempts=[] #records the number of guesses it took to guess each number
+while flag in ['Y','y'] :
+    x=int(guess(nu)) #calls the guess function which guesses the users number
+    attempts.append(x)
+    print("It took me", attempts[-1],"guesses")
+    print("I averaged",sum(attempts)/len(attempts),"gusses per game for",len(attempts),"game(s)")
+    print("Would you like to play again y or n")
+    flag=input()
+
